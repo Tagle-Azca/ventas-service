@@ -5,7 +5,7 @@ const Nota = require('../models/Nota');
 const sns = new AWS.SNS({ region: process.env.AWS_REGION || 'us-east-1' });
 
 async function publicarNotificacion(nota) {
-  const mensaje = {
+  const payload = {
     notaId:       nota._id.toString(),
     clienteId:    nota.clienteId.toString(),
     emailCliente: nota.emailCliente,
@@ -15,10 +15,37 @@ async function publicarNotificacion(nota) {
     fecha:        nota.createdAt
   };
 
+  const fecha = new Date(nota.createdAt).toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+  const lineas = nota.productos.map(p =>
+    `  • ${p.nombre} x${p.cantidad}  —  $${p.precioUnitario.toLocaleString('es-MX')}`
+  ).join('\n');
+
+  const emailTexto = [
+    '================================================',
+    '        CONFIRMACIÓN DE NOTA DE VENTA',
+    '================================================',
+    `Nota #:   ${nota._id}`,
+    `Fecha:    ${fecha}`,
+    `Estado:   ${nota.estado.toUpperCase()}`,
+    '------------------------------------------------',
+    'PRODUCTOS:',
+    lineas,
+    '------------------------------------------------',
+    `TOTAL:    $${nota.total.toLocaleString('es-MX')}`,
+    '================================================',
+    'Gracias por tu compra.',
+  ].join('\n');
+
   const params = {
-    TopicArn: process.env.SNS_TOPIC_ARN,
-    Message:  JSON.stringify(mensaje),
-    Subject:  'Nueva nota de venta creada'
+    TopicArn:        process.env.SNS_TOPIC_ARN,
+    Subject:         `Nota de venta #${nota._id} — $${nota.total.toLocaleString('es-MX')}`,
+    MessageStructure: 'json',
+    Message: JSON.stringify({
+      default: JSON.stringify(payload),
+      email:   emailTexto,
+      http:    JSON.stringify(payload),
+      https:   JSON.stringify(payload)
+    })
   };
 
   await sns.publish(params).promise();
