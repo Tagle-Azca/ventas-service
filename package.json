@@ -1,0 +1,19 @@
+{
+  "name": "ventas-service",
+  "version": "1.0.0",
+  "description": "Microservicio para gestión de notas de venta",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1693.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^9.2.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
